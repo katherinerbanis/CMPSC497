@@ -1,0 +1,65 @@
+# Red and Blue Color Detection with OpenCV and Python
+
+import cv2 as cv
+import numpy as np
+
+# function to find largest contour and centroid
+def find_largest_contour(mask):
+    contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    if len(contours) > 0:
+        largest_contour = max(contours, key=cv.contourArea)
+        M = cv.moments(largest_contour)
+        if M["m00"] != 0:
+            cx = int(M["m10"] / M["m00"])
+            cy = int(M["m01"] / M["m00"])
+            return largest_contour, (cx, cy)
+    return None, None
+
+cap = cv.VideoCapture(0)
+while(1):
+    # Take each frame
+    _, frame = cap.read()
+
+    # Convert BGR to HSV
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    # define range of blue color in hsv
+    lower_blue = np.array([100, 100, 100])
+    upper_blue = np.array([130, 255, 255])
+
+    # define range of red color in hsv
+    lower_red = np.array([0, 120, 70])
+    upper_red = np.array([10, 255, 255])
+
+    # threshold the hsv image to get only blue and red colors
+    mask_blue = cv.inRange(hsv, lower_blue, upper_blue)
+    mask_red = cv.inRange(hsv, lower_red, upper_red)
+
+    # combine masks
+    mask_combined = cv.bitwise_or(mask_blue, mask_red)
+    largest_mask = np.zeros_like(mask_combined)
+
+    # find largest blue object
+    largest_blue_contour, blue_centroid = find_largest_contour(mask_blue)
+    if largest_blue_contour is not None:
+        cv.drawContours(frame, [largest_blue_contour], -1, (255, 0, 0), 3)
+        cv.circle(frame, blue_centroid, 5, (255, 0, 0), -1)
+        cv.putText(frame, "Blue Centroid", blue_centroid, cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+
+    # find largest red object
+    largest_red_contour, red_centroid = find_largest_contour(mask_red)
+    if largest_red_contour is not None:
+        cv.drawContours(frame, [largest_red_contour], -1, (0, 0, 255), 3)
+        cv.circle(frame, red_centroid, 5, (0, 0, 255), -1)
+        cv.putText(frame, "Red Centroid", red_centroid, cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+    # show original frame with annotations
+    cv.imshow('frame', frame)
+
+    k = cv.waitKey(5) & 0xFF
+    if k == 27:  # escape key is 27; space is 32, etc
+        break
+
+cap.release()
+cv.destroyAllWindows()
+
