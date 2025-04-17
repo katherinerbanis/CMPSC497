@@ -1,0 +1,64 @@
+% access original rgb image
+rgb = imread('cookie.jpg');
+imshow(rgb);
+
+% grayscale
+gray = rgb2gray(rgb);
+threshold = graythresh(gray);
+figure, imshow(gray)
+
+% binary image
+bw = im2bw(gray, threshold);
+figure, imshow(bw)
+
+% remove all objects less than 200 px
+bw1 = bwareaopen(bw, 200);
+figure, imshow(bw1)
+
+% fill gaps
+se = strel('disk', 2); 
+bw2 = imclose(bw1, se);
+figure, imshow(bw2);
+
+% fill any holes
+bw3 = imfill(bw2, 'holes');
+figure, imshow(bw3)
+
+% get px for boundaries of each object
+[B,L] = bwboundaries(bw3, 'noholes');
+% L = label matrix - try imtool(L) and imshow(L)
+% display L and draw each boundary
+imshow(label2rgb(L, @jet, [.5 .5 .5]))
+hold on % allow graphics to be added to same plot
+
+% find area in px and centroid (x,y) for each object in L
+stats = regionprops(L, 'Area', 'Centroid');
+
+% good and bad cookie values
+threshold = 0.7;
+badCookies = 0;
+goodCookies = 0;
+
+% loop over each object (each object has a boundary)
+for k = 1 : length(B)
+boundary = B{k};
+delta_sq = diff(boundary).^2;
+perimeter = sum(sqrt(sum(delta_sq, 2)));
+area = stats(k).Area;
+metric = (4 * pi * area) / perimeter^2; 
+centroid = stats(k).Centroid;
+if metric > threshold
+plot(centroid(1), centroid(2), 'go', 'MarkerSize', 10); % good cookies 	marked with green
+goodCookies = goodCookies + 1;
+text(boundary(1,2)-35, boundary(1,1)+13, 'Good', 'Color', 'green', 	'FontSize', 14, 'FontWeight', 'bold');
+else
+plot(centroid(1), centroid(2), 'ro', 'MarkerSize', 10); % bad cookies marked with red
+badCookies = badCookies + 1; % Corrected this line from goodCookies to badCookies
+text(boundary(1,2)-35, boundary(1,1)+13, 'Bad', 'Color', 'red', 'FontSize', 14, 'FontWeight', 'bold');
+end
+End
+
+% print results
+fprintf('Total number of cookies: %d\n', length(B));
+fprintf('Number of good cookies: %d\n', goodCookies);
+fprintf('Number of bad cookies: %d\n', badCookies);
