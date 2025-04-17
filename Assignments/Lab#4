@@ -1,6 +1,6 @@
-# Color Tracking with Webcam
+% Color Tracking with Webcam
 
-# Screenshots
+% Screenshots
 
 % Access camera
 cam = webcam;
@@ -63,7 +63,7 @@ for i = 1:5
 end
 
 
-# 10 Second Video
+% 10 Second Video
 
 % Access camera
 cam = webcam;
