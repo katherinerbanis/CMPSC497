@@ -1,0 +1,111 @@
+% Cookie/Cracker Defect Detection System using Deep Learning
+
+% Lab #9: Cookie/Cracker Defect Detection System
+% Set the directories for your dataset
+cookies = '/Users/katherinebanis/Desktop/cookies'; 
+
+% Load image datastore
+allCookies = imageDatastore(cookies, ...
+    'IncludeSubfolders', true, ...
+    'LabelSource', 'foldernames', ...
+    'FileExtensions', {'.jpg', '.jpeg', '.png'}, ...
+    'ReadFcn', @readAndPreprocessImage);
+
+% Split data into training (80%) and test (20%) sets
+[trainingCookies, testCookies] = splitEachLabel(allCookies, 0.8, 'randomized');
+
+% Load pre-trained AlexNet
+alex = alexnet;
+
+% Specify paths for good and bad cookies
+good = fullfile(cookies, 'good_cookies');
+bad = fullfile(cookies, 'bad_cookies');
+
+% Create datastores for good and bad cookies
+goodCookies = imageDatastore(good, 'IncludeSubfolders', false, 'LabelSource', 'foldernames');
+badCookies = imageDatastore(bad, 'IncludeSubfolders', false, 'LabelSource', 'foldernames');
+
+% Select first 2 images from each folder
+numImages = 2;
+goodImages = cell(numImages, 1);
+badImages = cell(numImages, 1);
+
+% Read the first 2 images from goodCookies datastore
+for i = 1:numImages
+    if hasdata(goodCookies)
+        goodImages{i} = read(goodCookies);
+    end
+end
+
+% Read the first 2 images from badCookies datastore
+for i = 1:numImages
+    if hasdata(badCookies)
+        badImages{i} = read(badCookies);
+    end
+end
+
+% Combine images and create labels
+testImages = [goodImages; badImages];
+trueLabels = ["good_cookies", "good_cookies", "bad_cookies", "bad_cookies"];
+
+% Pre-test with unmodified AlexNet on the selected images
+figure;
+for i = 1:length(testImages)
+    img = imresize(testImages{i}, [227, 227]);
+    predictedLabel = classify(alex, img);
+    subplot(2, 2, i);
+    imshow(img);
+    title(sprintf('True: %s, Predicted: %s', trueLabels(i), string(predictedLabel)));
+end
+
+% Modify AlexNet layers for transfer learning
+layers = alex.Layers;
+layers(23) = fullyConnectedLayer(2, 'Name', 'fc8'); % 2 classes: good and broken
+layers(25) = classificationLayer('Name', 'output');
+
+% Set training options
+opts = trainingOptions('sgdm', ...
+    'InitialLearnRate', 0.001, ...
+    'MaxEpochs', 10, ...
+    'MiniBatchSize', 10, ...
+    'Plots', 'training-progress', ...
+    'Shuffle', 'every-epoch', ...
+    'Verbose', true);
+
+% Train the modified network
+myNet = trainNetwork(trainingCookies, layers, opts);
+
+% Test the network
+predictedLabels = classify(myNet, testCookies);
+accuracy = mean(predictedLabels == testCookies.Labels);
+
+% Display the accuracy
+fprintf('Validation Accuracy: %.2f%%\n', accuracy * 100);
+
+% Display sample predictions from the test set
+figure;
+for i = 1:4
+    % Read the image file directly
+    imgFile = testCookies.Files{i};
+    im = imread(imgFile);
+    
+    % Resize for display (optional)
+    im = imresize(im, [227 227]);
+    
+    % Get the true label and predicted label
+    trueLabel = testCookies.Labels(i);
+    predictedLabel = predictedLabels(i);
+    
+    % Display the image with title
+    subplot(2, 2, i);
+    imshow(im);
+    title(sprintf('True: %s, Predicted: %s', string(trueLabel), string(predictedLabel)));
+end
+
+function data = readAndPreprocessImage(filename)
+    data = imread(filename);
+    if size(data, 3) == 1
+        data = cat(3, data, data, data);
+    end
+    data = imresize(data, [227 227]);
+end
