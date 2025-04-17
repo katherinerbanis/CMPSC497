@@ -1,0 +1,32 @@
+% Alexnet MATLAB Demo
+
+% load pretrained alexnet model
+net = alexnet;
+
+% set up webcam
+cam = webcam;
+
+% loop to continuously capture images
+for i = 1:10
+
+    % capture image
+    img = snapshot(cam);
+
+    % preprocess image for alexnet (227x227x3)
+    img_resized = imresize(img, [227, 227])
+
+    % classify image
+    label = classify(net, img_resized);
+
+    % display image and prediction
+    figure(1);
+    imshow(img_resized);
+    title(['Predicted Label: ', char(label)]);
+    drawnow;
+
+end
+
+% clear cam;
+  
+
+
