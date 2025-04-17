@@ -1,0 +1,47 @@
+% Deep Learning: Image Classification on Study
+
+% Load training data
+training_data = "/Users/katherinebanis/Desktop/wine/test";
+allImages = imageDatastore(training_data, 'IncludeSubfolders', true, 'LabelSource', 'foldernames’);
+
+% Define a preprocessing function for resizing images to match AlexNet input
+readFunction = @(x) imresize(imread(x), [227 227]);
+allImages.ReadFcn = readFunction;
+
+% Split training and test images
+[trainingImages, testImages] = splitEachLabel(allImages, 0.8, 'randomize’);
+
+% Load AlexNet
+alex = alexnet;
+layers = alex.Layers;
+
+% Modify the network to match the number of classes
+numClasses = numel(categories(trainingImages.Labels));
+layers(23) = fullyConnectedLayer(numClasses, 'Name', 'fc8’);
+layers(25) = classificationLayer('Name', 'output’);
+
+% Set training options
+options = trainingOptions('sgdm', ...
+'MiniBatchSize', 16, ...
+'MaxEpochs', 10, ...
+'InitialLearnRate', 0.001, ...
+'Shuffle', 'every-epoch', ...
+'ValidationData', testImages, ...
+'ValidationFrequency', 3, ...
+'Verbose', false, ...
+'Plots', 'training-progress’);
+
+% Train the modified AlexNet
+wine_net = trainNetwork(trainingImages, layers, options);
+
+% Evaluate the network with test images
+predictedLabels = classify(wine_net, testImages);
+accuracy = mean(predictedLabels == testImages.Labels);
+
+% Display results
+disp("Test Accuracy:");
+disp(accuracy);
+
+% Confusion chart
+confusionchart(testImages.Labels, predictedLabels);
+
