@@ -1,0 +1,139 @@
+# Color Tracking with Webcam
+
+# Screenshots
+
+% Access camera
+cam = webcam;
+
+for i = 1:5
+    rgb = snapshot(cam);
+    
+    % Split RGB planes
+    r = rgb(:,:,1);
+    g = rgb(:,:,2);
+    b = rgb(:,:,3);
+    
+    % Create binary image for red detection
+    red = (r > 2*g) & (r > 2*b) & (r > 30); 
+
+    % Morphological operations
+    se = strel('disk', 5);
+    red = imclose(red, se);  % Close small gaps in the detected objects
+
+    % Remove small objects smaller than 35 pixels
+    red = bwareaopen(red, 35);
+
+    % Get properties of detected red objects
+    stats = regionprops(red, 'BoundingBox', 'Centroid', 'Area');
+    
+    % Display original image
+    figure;
+    imshow(rgb);
+    hold on;
+    
+    % Check if any red objects are detected
+    if isempty(stats)
+        % If no red objects are detected, display a message
+        title('Unsuccessful red detection');
+        disp("No red objects detected");
+    else
+        % If red objects are detected, find the largest one
+        areas = [stats.Area];  % Extract the areas of all objects
+        [maxArea, maxIndex] = max(areas);  % Find the largest area and its index
+
+        % Get the bounding box and centroid of the largest object
+        bb = stats(maxIndex).BoundingBox;
+        bc = stats(maxIndex).Centroid;
+
+        % Draw the bounding box around the largest red object
+        rectangle('Position', bb, 'EdgeColor', 'r', 'LineWidth', 2);
+        
+        % Mark the centroid with a '+'
+        plot(bc(1), bc(2), '-m+', 'MarkerSize', 10, 'LineWidth', 2);
+        
+        % Add a label next to the centroid
+        a = text(bc(1)+15, bc(2), strcat('X: ', num2str(round(bc(1))), ' Y: ', num2str(round(bc(2)))));
+        set(a, 'FontName', 'Arial', 'FontWeight', 'bold', 'FontSize', 12, 'Color', 'yellow');
+
+        % Update title to indicate successful detection
+        title('Successful red detection');
+    end
+    
+    hold off;
+end
+
+
+# 10 Second Video
+
+% Access camera
+cam = webcam;
+
+% Create video writer object to save the video (output file: 'tracked_red_object.avi')
+videoFile = VideoWriter('tracked_red_object.avi');
+videoFile.FrameRate = 10; % Set the frame rate
+open(videoFile);  % Open the video file for writing
+
+% Set duration of recording (10 seconds)
+recordDuration = 10; 
+startTime = tic;  % Start the timer
+
+% Loop to capture frames and track red object for 10 seconds
+while toc(startTime) < recordDuration
+    % Capture frame from webcam
+    rgb = snapshot(cam);
+    
+    % Split RGB planes
+    r = rgb(:,:,1);
+    g = rgb(:,:,2);
+    b = rgb(:,:,3);
+    
+    % Create binary image for red detection
+    red = (r > 1.5*g) & (r > 1.5*b) & (r > 30);  % Adjusted red detection condition
+    
+    % Morphological operations to clean up the mask
+    se = strel('disk', 5);
+    red = imclose(red, se);  % Close small gaps in the detected objects
+    
+    % Remove small objects smaller than 35 pixels
+    red = bwareaopen(red, 35);
+    
+    % Get properties of detected red objects
+    stats = regionprops(red, 'BoundingBox', 'Centroid', 'Area');
+    
+    % If any red objects are detected, find the largest one
+    if ~isempty(stats)
+        % Get the areas of all detected objects
+        areas = [stats.Area];
+        
+        % Find the largest area and its index
+        [~, maxIndex] = max(areas);
+        
+        % Get the bounding box and centroid of the largest object
+        bb = stats(maxIndex).BoundingBox;
+        bc = stats(maxIndex).Centroid;
+        
+        % Draw the bounding box around the largest red object
+        rgb = insertShape(rgb, 'Rectangle', bb, 'Color', 'red', 'LineWidth', 3);
+        
+        % Mark the centroid with a '+'
+        rgb = insertMarker(rgb, bc, 'x', 'Color', 'blue', 'Size', 10);
+        
+        % Add a label for the centroid coordinates
+        label = sprintf('X: %.2f, Y: %.2f', bc(1), bc(2));
+        rgb = insertText(rgb, [bc(1)+15, bc(2)], label, 'FontSize', 12, 'TextColor', 'yellow', 'BoxOpacity', 0);
+    end
+    
+    % Write the processed frame to the video file
+    writeVideo(videoFile, rgb);
+    
+    % Display the processed frame (optional, but useful for real-time tracking)
+    imshow(rgb);
+    drawnow;  % Force MATLAB to update the figure
+end
+
+% Cleanup: close the video file and clear the camera
+close(videoFile);
+clear cam;
+disp('Video recording completed and saved as tracked_red_object.avi.');
+
+
