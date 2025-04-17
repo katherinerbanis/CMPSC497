@@ -1,72 +1,72 @@
-# Part 1: Display and Analyze an Image
+% Part 1: Display and Analyze an Image
 
-# read and display a stored MATLAB png (RGB) image called 'peppers.png'
+% read and display a stored MATLAB png (RGB) image called 'peppers.png'
 im = imread('peppers.png');
 imshow(im);
 
-# find dimensions of image
+% find dimensions of image
 size(im)  # 384 512 3
 
-# display two separate pixel regions 
+% display two separate pixel regions 
 imtool(im);
 
-# display red plane
+% display red plane
 red = im(:, :, 1);
 imshow(red);
 
-# display blue plane
+% display blue plane
 blue = im(: ,:, 3);
 imshow(blue);
 
-# display green plane
+% display green plane
 green = im(:, :, 2);
 imshow(green);
 
-# convert into an intensity (grayscale) image and display
+% convert into an intensity (grayscale) image and display
 gray = rgb2gray(im);
 imshow(gray);
 
-# range of individual pixels is 0 to 255
-# number of planes in grayscale is 1 plane
-# dimensions = 384 512
+% range of individual pixels is 0 to 255
+% number of planes in grayscale is 1 plane
+% dimensions = 384 512
 
-# find min, max, and avg pixels for grayscale image
-minimum = min(min(gray))  # uint8; 8
-maximum = max(max(gray))  # uint8; 255
-average = mean(mean(gray))  # 81.6594
+% find min, max, and avg pixels for grayscale image
+minimum = min(min(gray))    % uint8; 8
+maximum = max(max(gray))    % uint8; 255
+average = mean(mean(gray))  % 81.6594
 
-# display a histogram plot
+% display a histogram plot
 figure;
 imhist(gray);
 xlabel('Axel Intensity Value')
 ylabel('Number of Pixels')
 title('Distribution of Pixels')
 
-# display top half of image
+% display top half of image
 top_half = gray(1:end/2, :);
 imshow(top_half);
 
-# display right half of image
+% display right half of image
 right_half = gray(:, end/2+1:end);
 imshow(right_half);
 
-# convert grayscale to a binary image
+% convert grayscale to a binary image
 binary_im = imbinarize(gray);
 imshow(binary_im)
 
-# reduce original image by 50%
+% reduce original image by 50%
 resize_50 = imresize(im, 0.5);
 imshow(resize_50);
 
-# size after 50% reduction
+% size after 50% reduction
 disp('Size after 50% reduction: ');
 disp(size(resize_50));
 # Size after 50% reduction: 192 256 3
 
-# reduce original rgb image to a 200 x 200 pixel image
+% reduce original rgb image to a 200 x 200 pixel image
 resize_200x200 = imresize(im, [200, 200]);
 imshow(resize_200x200);
 disp('Size after resizing to 200x200 pixels: ');
 disp(size(resize_200x200));
-# Size after resizing to 200x200 pixels: 200 200 3
+% Size after resizing to 200x200 pixels: 200 200 3
 
