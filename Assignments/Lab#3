@@ -1,0 +1,31 @@
+% Color Tracking with Images (no robot)
+
+rgb = imread('lab3_im3.jpg');
+
+% split rgb channels
+r = rgb(:,:,1); % red channel
+g = rgb(:,:,2); % green channel
+b = rgb(:,:,3); % blue channel
+
+% define binary mask for red detection
+redMask = (r > 2*g) & (r > 2*b) & (r > 30)
+
+% post processing
+se = strel('disk', 5);
+redMask = imclose(redMask, se);
+redMask = bwareaopen(redMask, 35);
+
+% label image
+labeledImage = bwlabel(redMask);
+stats = regionprops(labeledImage, 'BoundingBox', 'Centroid');
+
+% plot results
+imshow(rgb);
+hold on;
+for k = 1:length(stats)
+    % bounding box
+    rectangle('Position', stats(k).BoundingBox, 'EdgeColor','r', 'LineWidth', 2);
+    % centroid
+    plot(stats(k).Centroid(1), stats(k).Centroid(2), 'm+', 'MarkerSize', 10, 'LineWidth', 2)
+end
+hold off;
