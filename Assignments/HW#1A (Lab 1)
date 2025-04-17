@@ -1,4 +1,4 @@
-# Part one
+% Part one
 
 % analysis.m
 
@@ -46,7 +46,7 @@ disp(above_average);
 fprintf('Sorted voltages:\n');
 disp(sorted);
 
-# Part 2: Series
+% Part 2: Series
 
 % series.m
 % calculates total resistance of n resistors connected in series
@@ -63,7 +63,7 @@ end
 % display total resistance
 fprintf('Total resistance for series is %.2f ohms\n', total_resistance');
 
-# Part 3: Parallel
+% Part 3: Parallel
 
 % parallel.m
 % calculates total resistance of n resistors connected in parallel
