@@ -1,0 +1,85 @@
+# Part one
+
+% analysis.m
+
+voltages = [21.2, 19.5, 20.1, 18.3, 17.7, 15.0, 21.9, 24.7, 23.1, 20.2, 16.3, 22.8, 18.4, 23.5, 21.1];
+
+% Basic statistics
+minimum = min(voltages);
+maximum = max(voltages);
+average = mean(voltages);
+standard_deviation = std(voltages);
+med = median(voltages);
+
+% Values above average
+index = find(voltages > average);
+above_average = voltages(index);
+
+% Plot data
+figure;
+plot(voltages, 'o-');
+ylabel('Voltages (Volts)');
+title('Raw Voltage Data');
+
+% distribution plot (histogram)
+figure;
+histogram(voltages, 'BinWidth', 1);
+xlabel('Voltage (Volts)');
+ylabel('Frequency');
+title('Histogram of Voltage Distribution');
+
+% Sort voltages
+sorted = sort(voltages);
+
+% Print results
+fprintf('Minimum voltage is %.2f volts \n', minimum);
+fprintf('Maximum voltage is %.2f volts \n', maximum);
+fprintf('Average voltage is %.2f volts \n', average);
+fprintf('Standard deviation is %.2f volts \n', standard_deviation);
+fprintf('The median voltage is %.2f volts \n', med);
+
+fprintf('Index of values above average:\n');
+disp(index);
+fprintf('Values above average:\n');
+disp(above_average);
+
+fprintf('Sorted voltages:\n');
+disp(sorted);
+
+# Part 2: Series
+
+% series.m
+% calculates total resistance of n resistors connected in series
+
+% ask user for number of resistors in series
+n = input('Enter number of resistors in series: ');
+total_resistance = 0;
+
+for i = 1 : n
+    r = input('Enter resistance (ohms): ');
+    total_resistance = total_resistance + r;
+end
+
+% display total resistance
+fprintf('Total resistance for series is %.2f ohms\n', total_resistance');
+
+# Part 3: Parallel
+
+% parallel.m
+% calculates total resistance of n resistors connected in parallel
+
+% asks user for number of resistors parallel
+n = input('Enter number of resistors in parallel: ');
+sum_inverse = 0; % initialize sum of inverse of resistances
+
+% accumulate inverse of each resistor's value
+for i = 1 : n
+    r = input('Enter resistance (ohms): ');
+    sum_inverse = sum_inverse + 1/r;
+end
+
+% calculate total resistance
+total_resistance = 1 / sum_inverse;
+
+% display total resistance
+fprintf('Total resistance for parallel is %.2f ohms\n', total_resistance');
